@@ -1,6 +1,6 @@
 {
   "name": "@jindin/mapboxgl-mapex",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "mapboxgl地图扩展对象",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
