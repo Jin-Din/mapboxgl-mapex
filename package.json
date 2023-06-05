@@ -1,0 +1,26 @@
+{
+  "name": "@jindin/mapboxgl-mapex",
+  "version": "1.0.0",
+  "description": "mapboxgl地图扩展对象",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "release": "tsc && npm publish --access public"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "mapboxgl",
+    "sxgis"
+  ],
+  "author": "JinDin",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/mapbox-gl": "^2.7.10",
+    "typescript": "^5.0.4"
+  },
+  "dependencies": {}
+}
