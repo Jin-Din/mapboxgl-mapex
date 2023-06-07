@@ -3,7 +3,6 @@
 ## 限制条件
 
 > 本地图对象是在结合使用天地图陕西的 mapbox-gl api 进行应用开发过程中总结提炼。受其约束需要在 index.html 中引入优先引入 mapboxgl api 。请请结合 天地图陕西的 mapboxgl api 的调用方式使用
-> 目前暂不支持其他以 npm install 等方式
 
 ## 技术栈
 
