@@ -88,14 +88,17 @@ import { Map, createMap, ISMapConfig } from "@jindin/mapboxgl-mapex";
 const { mapboxgl } = window;
 mapboxgl.accessToken = "申请token";
 
-//使用createMap初始化map对象
-const map = createMap(mapconfig, basemapId);
+//方法一：new 地图对象
+const map = new mapboxgl.Map(option);
+//方法二【推荐】：配合ISMapconfig，使用createMap初始化map对象
+//const map = createMap(mapconfig, basemapId);
+
 map.on("load", () => {
   //do something
 });
 ```
 
-> 注意：要调用 createMap 方法来初始化 Map 对象！！！！
+> 提示：createMap方法接收并管理一个mapConfig对象。通过 createMap 方法初始化 Map 对象后，可结合 switchBaseMap 实现常见的便捷的底图切换功能。
 
 ### 扩展内容
 
