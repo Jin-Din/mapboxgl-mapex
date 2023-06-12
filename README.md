@@ -2,7 +2,7 @@
 
 ## 限制条件
 
-> 本地图对象是在结合使用天地图陕西的 mapbox-gl api 进行应用开发过程中总结提炼。受其约束需要在 index.html 中引入优先引入 mapboxgl api 。请请结合 天地图陕西的 mapboxgl api 的调用方式使用
+> 本地图对象是在结合使用天地图陕西的 mapbox-gl api 进行应用开发过程中总结提炼。受其约束需要在 index.html 中优先引入 mapboxgl api 。请请结合 天地图陕西的 mapboxgl api 的调用方式使用
 
 ## 技术栈
 
@@ -98,7 +98,7 @@ map.on("load", () => {
 });
 ```
 
-> 提示：createMap方法接收并管理一个mapConfig对象。通过 createMap 方法初始化 Map 对象后，可结合 switchBaseMap 实现常见的便捷的底图切换功能。
+> 提示：createMap 方法接收并管理一个 mapConfig 对象。通过 createMap 方法初始化 Map 对象后，可结合 switchBaseMap 实现常见的便捷的底图切换功能。
 
 ### 扩展内容
 
