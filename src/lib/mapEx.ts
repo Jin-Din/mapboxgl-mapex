@@ -195,7 +195,7 @@ export class Map extends mapboxgl.Map {
   //   }
   // };
   /**
-   * 切换style ，
+   * 切换style （暂未实现，勿使用）
    * 方法一：[不推荐] setSyle。 把新style与旧style合并，重新setStyle。简单粗暴
    *
    * 缺点：
@@ -205,7 +205,7 @@ export class Map extends mapboxgl.Map {
    * @param stay
    * @returns
    */
-  changeOverwriteStyle = async (styleJson: Style | string, stay: boolean = false) => {
+  changeStyle = async (styleJson: Style | string, stay: boolean = false) => {
     if (!stay) {
       //移除上一个
       let currentStyle = this.getStyle();
@@ -264,7 +264,6 @@ export class Map extends mapboxgl.Map {
       ...defaultLayerOptionEx,
       ...option,
     };
-    // console.log(optMetadata);
 
     this.initDefaultEmptyLayers();
     if (typeof styleJson === "string") {
@@ -282,7 +281,6 @@ export class Map extends mapboxgl.Map {
         ...styleJson,
       };
       await this.addStyle(vectorStyle, optMetadata);
-      // this.setStyle(styleJson as string, {diff: false});
     } else {
       let { sources, layers, terrain } = styleJson as Style;
       //添加数据源
@@ -294,30 +292,15 @@ export class Map extends mapboxgl.Map {
         }
       });
 
-      // let { metadata } = opt;
       let { isBaseMap } = optMetadata;
-      // console.log(optMetadata);
-
       if (layers)
         //添加图层
-        for (const lyr of layers) {
-          // console.log(lyr);
-          let layerid = lyr.id;
+        for (const layer of layers) {
+          let layerid = layer.id;
           // 修订：图层元数据metadata合并，加入顶层option.metadata配置
-          let { metadata } = lyr as Layer;
-          // console.log(lyr.id);
-          // console.log(metadata);
-          metadata = metadata ? { ...optMetadata, ...metadata } : optMetadata;
-          // console.log("合并后");
-          // console.log(metadata);
-          let layer = {
-            metadata,
-            ...lyr,
-          };
-          //@ts-ignore
-          // if (layer.metadata) layer.metadata = metadata;
-          // let layer = Object.assign(lyr, opt);
-          // console.log(layer);
+          let { metadata } = layer as Layer;
+          //替换原来的metadata
+          (layer as Layer).metadata = metadata ? { ...optMetadata, ...metadata } : optMetadata;
 
           if (!this.getStyle() || !this.getLayer(layerid)) {
             let firstSpeLayer = this.safeAddBaseMapSplitedLayer();
@@ -370,34 +353,43 @@ export class Map extends mapboxgl.Map {
         let metadata = (anylayer as Layer).metadata as ISLayerCustomMetadata;
         return !metadata || metadata.isBaseMap === undefined || metadata.isBaseMap === true;
       });
-      //查找非底图(metadata.isBaseMap==true)图层集
+      // console.log("待删除图层ids");
+      // console.log(removedLayers.map((item) => item.id));
+      //查找非底图(metadata.isBaseMap==false)图层集
+      // 修复: metadata 有值且 值为false 才能保留
       let stayinLayers = layers.filter((anylayer) => {
         let metadata = (anylayer as Layer).metadata as ISLayerCustomMetadata;
-        return metadata && !metadata.isBaseMap;
+        return metadata && metadata.isBaseMap != undefined && metadata.isBaseMap === false;
       });
-      //待删除的source
+      // console.log("待保留图层ids");
+      // console.log(stayinLayers.map((item) => item.id));
+      //待删除的sourceid
       let readyToRemovedSourceIds: string[] = [];
-      removedLayers.forEach((anylayer: AnyLayer) => {
+      removedLayers.forEach((anylayer) => {
         //收集被删除layer对应的source
         if (Object.keys(anylayer).includes("source")) {
           let removedSource = (anylayer as Layer).source;
-          if (typeof removedSource === "string") {
+          if (removedSource && typeof removedSource === "string" && !readyToRemovedSourceIds.includes(removedSource)) {
             readyToRemovedSourceIds.push(removedSource);
           }
         }
       });
+      // console.log("待删除sourceids");
+      // console.log(readyToRemovedSourceIds);
+
       //待保留的source
       let stayinSourceIds: string[] = [];
-
-      stayinLayers.forEach((anylayer: Layer) => {
+      stayinLayers.forEach((anylayer) => {
         //收集被删除layer对应的source
         if (Object.keys(anylayer).includes("source")) {
           let stayinSource = (anylayer as Layer).source;
-          if (typeof stayinSource === "string") {
+          if (stayinSource && typeof stayinSource === "string" && !stayinSourceIds.includes(stayinSource)) {
             stayinSourceIds.push(stayinSource);
           }
         }
       });
+      // console.log("待保留sourceids");
+      // console.log(stayinSourceIds);
 
       //收集被删除layer对应的source
       //去重，求差
@@ -412,34 +404,10 @@ export class Map extends mapboxgl.Map {
         //删除图层
         this.removeLayer(anylayer.id);
       }
-
       //同步删除对应的source
       removeSourceIds.forEach((item) => {
         if (item && this.getSource(item)) this.removeSource(item);
       });
-
-      //之前的代码，暂时保留，等上面的代码测试稳定后可删除
-      // let removeSourceIds: string[] = [];
-      // for (const anylayer of removedLayers) {
-      //   let metadata = (anylayer as Layer).metadata as ISCustomMetadata;
-      //   if (!metadata || metadata.isBaseMap === undefined || metadata.isBaseMap === true) {
-      //     this.removeLayer(anylayer.id);
-
-      //     //收集被删除layer对应的source
-      //     if (Object.keys(anylayer).includes("source")) {
-      //       let source = (anylayer as Layer).source;
-      //       if (typeof source === "string" && !removeSourceIds.some((item) => item === source)) {
-      //         removeSourceIds.push(source);
-      //       }
-      //     }
-      //   }
-      // }
-      // //同步删除对应的source
-      // removeSourceIds.forEach((item) => {
-      //   //遍历非底图图层，查找是否有引用该source的图层
-
-      //   if (this.getSource(item)) this.removeSource(item);
-      // });
     }
   };
   /**
