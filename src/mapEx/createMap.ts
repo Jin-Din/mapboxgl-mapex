@@ -1,7 +1,7 @@
 // #region  地图操作辅助 处理逻辑
 //=====================================================
 
-import { MapboxOptions, Style, Layer, Source, AnySourceData, Sources, AnyLayer } from "mapbox-gl";
+import { MapboxOptions, Style, Layer, Sources, AnyLayer } from "mapbox-gl";
 import { getInnerBasemapItem } from "./defaultBaseMap";
 
 import { Map } from "./mapEx";
@@ -199,7 +199,7 @@ const toStoreStyles = (mapConfig: ISMapConfig) => {
         let basemapStyle = getInnerBasemapItem(basemap as string).style;
         storeStyles[basemap] = basemapStyle;
       } else {
-        let basemapStyle = (storeStyles[basemap.id] = parseBasemItemToStyle(basemap as ISBaseMap));
+        storeStyles[basemap.id] = parseBasemItemToStyle(basemap as ISBaseMap);
       }
     });
   }
@@ -261,7 +261,7 @@ export function createMap(mapConfig: ISMapConfig, basemapId?: string): Map {
   _mapConfig = normalizeMapConfig(config as ISMapConfig);
 
   // console.log(_mapConfig);
-  let { current, baseMaps, token } = _mapConfig;
+  let { current, baseMaps } = _mapConfig;
 
   //如果设置了style，默认加载。 此时， config中的 current 无效
   if (!basemapId && !current && _mapConfig.style) {

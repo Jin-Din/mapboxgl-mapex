@@ -1,4 +1,4 @@
-import type { MapboxOptions, AnyLayer, Layer, Style, AnySourceData, LngLatBoundsLike } from "mapbox-gl";
+import type { MapboxOptions, AnyLayer, Layer, Style, AnySourceData } from "mapbox-gl";
 
 /**
  * 鼠标样式
@@ -14,18 +14,6 @@ declare module global {
     mapboxgl: any;
   }
 }
-//@ts-ignore
-const { mapboxgl } = window; //在script 中引入 mapbox js 文件，
-export default mapboxgl;
-// #region 自定义内容
-
-//底图与其他业务图层的分割层
-const BASEMAP_SPLITED_LAYER: string = "sxgis.basemap.splited.empty.layer";
-// 默认的分割图层名称
-const fill_group_layer: string = "sxgis.fill.splited.group.layer";
-const line_group_layer: string = "sxgis.line.splited.group.layer";
-const point_group_layer: string = "sxgis.point.splited.group.layer";
-
 interface ISLayerCustomMetadata {
   group?: string;
   isSplitLayer: boolean; //标识是否是分割图层
@@ -69,15 +57,17 @@ declare module "mapbox-gl" {
   }
 }
 
-/**
- * see doc: https://docs.mapbox.com/mapbox-gl-js/style-spec/layers/
- *
- * @author wang1212
- * @interface LayerDefinition
- */
-interface LayerDefinition {
-  [p: string]: unknown;
-}
+//@ts-ignore
+const { mapboxgl } = window; //在script 中引入 mapbox js 文件，
+export default mapboxgl;
+// #region 自定义内容
+
+//底图与其他业务图层的分割层
+const BASEMAP_SPLITED_LAYER: string = "sxgis.basemap.splited.empty.layer";
+// 默认的分割图层名称
+const fill_group_layer: string = "sxgis.fill.splited.group.layer";
+const line_group_layer: string = "sxgis.line.splited.group.layer";
+const point_group_layer: string = "sxgis.point.splited.group.layer";
 
 export class Map extends mapboxgl.Map {
   constructor(options?: MapboxOptions) {
@@ -158,7 +148,7 @@ export class Map extends mapboxgl.Map {
    * [自定义方法]清空除了底图、分割图层等内置图层之外的所有临时（专题）图层
    */
   removeOtherLayers(): void {
-    let [id, index] = this.getFirstBaseMapSplitedLayerId();
+    let [, index] = this.getFirstBaseMapSplitedLayerId();
     let { layers } = this.getStyle();
     layers &&
       layers
@@ -175,11 +165,11 @@ export class Map extends mapboxgl.Map {
   /**
    * [自定义]切换底图
    * @param data string类型代表矢量瓦片url 地址
-   * @param removeLast  是否移除上一次的底图 ，默认为true,目前不起作用
+   * @param _removeLast  是否移除上一次的底图 ，默认为true,目前不起作用
    */
-  changeBaseMapStyle = async (data: Style | string | undefined, removeLast = true) => {
+  changeBaseMapStyle = async (data: Style | string | undefined, _removeLast: boolean = true) => {
     if (!data) return;
-    console.log(data);
+    // console.log(data);
 
     this.removeBaseStyle();
     await this.addBaseMapStyle(data, baseMapLayerOptionEx);
@@ -210,12 +200,12 @@ export class Map extends mapboxgl.Map {
    *
    * 缺点：
    * 1.切换时整个地图会重新刷一遍，视觉上就会出现白屏
-   * 2.之前动态加载的资源（如图标）将被清空，需要重新加载
+   * 2.之前动态加载的资源（如图标）将被清空，需要重新加载(暂未实现)
    * @param styleJson
    * @param stay
    * @returns
    */
-  private changeStyle = async (styleJson: Style | string, stay: boolean = false) => {
+  changeOverwriteStyle = async (styleJson: Style | string, stay: boolean = false) => {
     if (!stay) {
       //移除上一个
       let currentStyle = this.getStyle();
@@ -224,7 +214,7 @@ export class Map extends mapboxgl.Map {
       let { layers, sources: currentSources } = currentStyle;
 
       //原 sources ids
-      let curretnSourceIds = Object.keys(currentSources);
+      // let curretnSourceIds = Object.keys(currentSources);
       //找到自定义的图层
       let customLayers = layers.filter((item) => {
         let layer = item as Layer;
@@ -274,7 +264,7 @@ export class Map extends mapboxgl.Map {
       ...defaultLayerOptionEx,
       ...option,
     };
-    console.log(optMetadata);
+    // console.log(optMetadata);
 
     this.initDefaultEmptyLayers();
     if (typeof styleJson === "string") {
@@ -283,7 +273,7 @@ export class Map extends mapboxgl.Map {
       let [error, result] = await fetchJson(styleString); //awaitHelper(axios.get(styleString));
       if (error) return;
       styleJson = result as Style;
-      let { sprite, sources, layers, terrain } = styleJson;
+      let { sprite } = styleJson;
       if (sprite) await this.addSpriteImages(sprite as string); //记载雪碧图
       let vectorStyle = {
         // version: 8,
@@ -315,11 +305,11 @@ export class Map extends mapboxgl.Map {
           let layerid = lyr.id;
           // 修订：图层元数据metadata合并，加入顶层option.metadata配置
           let { metadata } = lyr as Layer;
-          console.log(lyr.id);
-          console.log(metadata);
+          // console.log(lyr.id);
+          // console.log(metadata);
           metadata = metadata ? { ...optMetadata, ...metadata } : optMetadata;
-          console.log("合并后");
-          console.log(metadata);
+          // console.log("合并后");
+          // console.log(metadata);
           let layer = {
             metadata,
             ...lyr,
@@ -386,22 +376,25 @@ export class Map extends mapboxgl.Map {
         return metadata && !metadata.isBaseMap;
       });
       //待删除的source
-      let readyToRemovedSourceIds = removedLayers.map((anylayer) => {
+      let readyToRemovedSourceIds: string[] = [];
+      removedLayers.forEach((anylayer: AnyLayer) => {
         //收集被删除layer对应的source
         if (Object.keys(anylayer).includes("source")) {
           let removedSource = (anylayer as Layer).source;
           if (typeof removedSource === "string") {
-            return removedSource;
+            readyToRemovedSourceIds.push(removedSource);
           }
         }
       });
       //待保留的source
-      let stayinSourceIds = stayinLayers.map((anylayer) => {
+      let stayinSourceIds: string[] = [];
+
+      stayinLayers.forEach((anylayer: Layer) => {
         //收集被删除layer对应的source
         if (Object.keys(anylayer).includes("source")) {
           let stayinSource = (anylayer as Layer).source;
           if (typeof stayinSource === "string") {
-            return stayinSource;
+            stayinSourceIds.push(stayinSource);
           }
         }
       });
@@ -546,7 +539,7 @@ export class Map extends mapboxgl.Map {
    *   */
   addSpriteImages = async (spritePath: string) => {
     // console.log(spritePath);
-    let [error, spriteJson] = await fetchJson(`${spritePath}.json`); //(await axios.get(`${spritePath}.json`)).data;
+    let [, spriteJson] = await fetchJson(`${spritePath}.json`); //(await axios.get(`${spritePath}.json`)).data;
     let img = new Image();
     img.onload = () => {
       // console.log("雪碧图")
@@ -559,6 +552,7 @@ export class Map extends mapboxgl.Map {
         // 单位雪碧图项，转base64字符串
         let base64Url = canvas.toDataURL("image/png");
         this.loadImage(base64Url, (error, simg: any) => {
+          if (error) return;
           if (!this.hasImage(key)) {
             // console.log(key);
 
