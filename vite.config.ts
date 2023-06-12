@@ -9,12 +9,12 @@ export default defineConfig(({ command, mode }) => {
         insertTypesEntry: true,
         copyDtsFiles: false,
       }),
-      // codeObfuscatorPlugin(true),
+      codeObfuscatorPlugin(true),
     ],
     build: {
       lib: {
         // 入口指向组件库入口模块
-        entry: resolve(__dirname, "src/mapEx/index.ts"),
+        entry: resolve(__dirname, "src/lib/index.ts"),
         name: "mapEx",
         // 构建生成的文件名，与package.json中配置一致
         fileName: "index",
@@ -25,7 +25,7 @@ export default defineConfig(({ command, mode }) => {
 
         output: {
           // format: 'es', // 默认es，可选 'amd' 'cjs' 'es' 'iife' 'umd' 'system'
-          // exports: "named", // https://rollupjs.org/configuration-options/#output-exports
+          exports: "named", // https://rollupjs.org/configuration-options/#output-exports
           globals: {
             // 在 UMD 构建模式下为这些外部化的依赖提供一个全局变量
             vue: "Vue",
@@ -37,7 +37,7 @@ export default defineConfig(({ command, mode }) => {
         注意，在 lib 模式下使用 'es' 时，build.minify 选项不会缩减空格，因为会移除掉 pure 标注，导致破坏 tree-shaking。
         当设置为 'terser' 时必须先安装 Terser。（yarn add terser -D）
     */
-      minify: "terser", //"terser", // Vite 2.6.x 以上需要配置 minify: "terser", terserOptions 才能生效
+      minify: true, //"terser", // Vite 2.6.x 以上需要配置 minify: "terser", terserOptions 才能生效
       terserOptions: {
         // 在打包代码时移除 console、debugger 和 注释
         compress: {
