@@ -5,7 +5,7 @@ import { MapboxOptions, Style, Layer, Sources, AnyLayer } from "mapbox-gl";
 import { getInnerBasemapItem } from "./defaultBaseMap";
 
 import { Map } from "./mapEx";
-
+import { ref } from "vue";
 import { parseBasemItemToStyle } from "./parseBasemItemToStyle";
 import { templateParser } from "./utils";
 
