@@ -90,7 +90,7 @@ const innerDefaultStyleId = "_default"; //当mapconfig 设置style 时，指向 
 //用于标识是否通过createMap 创建的地图对象
 let bCreateMap = false;
 let _map: Map;
-let currentBaseMapId = "";
+let currentBaseMapId = ref("");
 
 let storeStyles: Record<string, Style | string | undefined> = {};
 
@@ -220,13 +220,13 @@ export const switchBaseMap = (baseMapItemId: string) => {
   if (!bCreateMap) throw new Error("未使用createMap创建地图对象，不能使用switchMap");
   if (!_map) throw new Error("map尚未创建，请先使用createMap创建");
 
-  let previousId = currentBaseMapId;
+  let previousId = currentBaseMapId.value;
   let currentId = "";
 
   if (previousId === baseMapItemId) return { previousId, baseMapItemId };
   if (!storeStyles || !Object.keys(storeStyles).includes(baseMapItemId)) return { previousId, currentId };
 
-  currentBaseMapId = currentId = baseMapItemId;
+  currentBaseMapId.value = currentId = baseMapItemId;
   _map.changeBaseMapStyle(storeStyles[baseMapItemId]);
   return {
     previousId,
@@ -265,7 +265,7 @@ export function createMap(mapConfig: ISMapConfig, basemapId?: string): Map {
 
   //如果设置了style，默认加载。 此时， config中的 current 无效
   if (!basemapId && !current && _mapConfig.style) {
-    currentBaseMapId = innerDefaultStyleId;
+    currentBaseMapId.value = innerDefaultStyleId;
     return _createMap(_mapConfig);
   }
   //如果外部传入初始加载的basemap的id，则使用
@@ -278,7 +278,7 @@ export function createMap(mapConfig: ISMapConfig, basemapId?: string): Map {
     if (typeof currentBasemap === "string") throw new Error("加载初始地图失败!原因：当前配置的默认加载地图错误或不存在");
     let style = parseBasemItemToStyle(currentBasemap);
     bCreateMap = true;
-    currentBaseMapId = current!;
+    currentBaseMapId.value = current!;
     return _createMap({
       ..._mapConfig,
       style,
@@ -296,7 +296,7 @@ export function createMap(mapConfig: ISMapConfig, basemapId?: string): Map {
   }
   let style = parseBasemItemToStyle(initBaseMap as ISBaseMap);
   bCreateMap = true;
-  currentBaseMapId = (initBaseMap as ISBaseMap).id;
+  currentBaseMapId.value = (initBaseMap as ISBaseMap).id;
   return _createMap({
     ..._mapConfig,
     style,

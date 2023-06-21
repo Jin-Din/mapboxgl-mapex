@@ -105,7 +105,7 @@
       "id": "tianditu_img_c",
       "name": "天地图影像",
       "type": "raster",
-      "icon": "/img/basemaps/image.png",
+      "icon": "/img/basemaps/tdt_img.png",
       "version": 8
     }
   ],

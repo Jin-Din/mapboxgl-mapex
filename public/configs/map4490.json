@@ -58,7 +58,7 @@
       "id": "tdtsx_img",
       "name": "影像",
       "type": "raster",
-      "icon": "/img/basemap/image.png",
+      "icon": "/img/basemaps/image.png",
       "style": {
         "sources": {
           "tdtsximg": {
@@ -112,7 +112,7 @@
       "id": "tdt_img",
       "name": "天地图影像",
       "type": "raster",
-      "icon": "/img/basemap/image.png",
+      "icon": "/img/basemaps/image.png",
       "style": {
         "sources": {
           "tdtimg": {

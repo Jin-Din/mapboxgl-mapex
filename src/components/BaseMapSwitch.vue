@@ -155,7 +155,7 @@ watch(
 );
 //监听 swicthbasemap底图id的变化，可以通知底图切换控件也跟着切换
 watch(
-  () => currentBaseMapId,
+  () => currentBaseMapId.value,
   (newValue, oldValue) => {
     console.log(newValue);
     selectedBaseMapId.value = newValue;
