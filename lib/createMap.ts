@@ -106,7 +106,7 @@ function _createMap(options?: MapboxOptions): Map {
         _map.addSourceEx(key, sources[key]);
       }
       layers.forEach((layer) => {
-        _map.addLayer(layer as AnyLayer);
+        if (!_map.getLayer(layer.id)) _map.addLayer(layer as AnyLayer);
       });
     }
   });

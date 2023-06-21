@@ -1,22 +1,72 @@
 import { PluginOption, defineConfig } from "vite";
+import vue from "@vitejs/plugin-vue";
 import { resolve } from "path";
+import AutoImport from "unplugin-auto-import/vite";
+import Components from "unplugin-vue-components/vite";
 import dts from "vite-plugin-dts";
 import { obfuscator } from "rollup-obfuscator";
 import obfuscatorPlugin from "vite-plugin-javascript-obfuscator";
 export default defineConfig(({ command, mode }) => {
   return {
+    server: {
+      host: "0.0.0.0",
+    },
+    resolve: {
+      alias: {
+        "@lib": resolve(__dirname, "lib"),
+        "@src": resolve(__dirname, "src"),
+        "@public": resolve(__dirname, "public"),
+        "@": resolve(__dirname, "src"),
+        "@assets": resolve(__dirname, "src/assets"),
+      },
+    },
     plugins: [
+      vue(),
       dts({
         insertTypesEntry: true,
         copyDtsFiles: false,
       }),
       codeObfuscator(command === "build"),
       // codeObfuscatorPlugin(command === "build"),
+
+      AutoImport({
+        imports: [
+          "vue",
+          "vue-router",
+          "pinia",
+          // custom
+          {
+            axios: [
+              // default imports
+              ["default", "axios"], // import { default as axios } from 'axios',
+            ],
+          },
+        ],
+        // Auto import for module exports under directories
+        // by default it only scan one level of modules under the directory
+        // 本项目中的文件夹
+        dirs: [
+          "./src/hooks/**",
+          "./src/utils/**",
+          // './composables' // only root modules
+          // './composables/**', // all nested modules
+          // ...
+        ],
+
+        resolvers: [],
+        //生成 `auto-import.d.ts` 全局声明
+        dts: "src/types/auto-import.d.ts",
+      }),
+      Components({
+        resolvers: [],
+        //生成 `auto-import-components.d.ts` 全局声明
+        dts: "src/types/auto-import-components.d.ts",
+      }),
     ],
     build: {
       lib: {
         // 入口指向组件库入口模块
-        entry: resolve(__dirname, "src/lib/index.ts"),
+        entry: resolve(__dirname, "lib/index.ts"),
         name: "mapEx",
         // 构建生成的文件名，与package.json中配置一致
         fileName: "index",
