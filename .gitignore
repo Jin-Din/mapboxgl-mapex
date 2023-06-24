@@ -11,6 +11,7 @@ node_modules
 dist
 dist-ssr
 *.local
+public/terrain
 
 # Editor directories and files
 .vscode/*

@@ -71,6 +71,7 @@ export default defineConfig(({ command, mode }) => {
         // 构建生成的文件名，与package.json中配置一致
         fileName: "index",
       },
+
       rollupOptions: {
         // 确保外部化处理那些你不想打包进库的依赖
         // external: ["vue"],

@@ -10,8 +10,9 @@
         <div class="nav-toolbar">
           <!-- <Measure :map="map"></Measure> -->
           <!-- <Navigation :map="map"></Navigation> -->
+          <div class="terrain-control" :class="{ isTerrain: terrainVisible }"></div>
+          <BaseMapSwitch :map="map" :mapConfig="mapConfig"></BaseMapSwitch>
         </div>
-        <BaseMapSwitch :map="map" :mapConfig="mapConfig"></BaseMapSwitch>
       </div>
     </template>
   </SBaseMap>
@@ -23,8 +24,9 @@ import type { Map } from "@lib/index";
 import type { PointLike } from "mapbox-gl";
 onMounted(async () => {});
 
-let mapconfigUrl = ref("configs/map4490_s.json");
-
+let mapconfigUrl = ref("configs/map4490.json");
+// let mapconfigUrl = ref("configs/map3857.json");
+let terrainVisible = ref(false);
 let map: Map;
 let mapRef = ref<Map>(null as unknown as Map);
 
@@ -36,6 +38,7 @@ const maploaded = (mapInstance: Map) => {
   map = mapInstance;
   mapRef.value = mapInstance;
   map.on("click", (e) => {
+    console.log("click");
     const bbox = [
       [e.point.x - 5, e.point.y - 5],
       [e.point.x + 5, e.point.y + 5],
@@ -47,17 +50,36 @@ const maploaded = (mapInstance: Map) => {
 
     //console.log(selectedFeatures[0].layer);
   });
-  map.addSourceEx("a-geojson", {
-    type: "geojson",
-    data: "/data/shaanxi.json",
+
+  map.on("style.load", (e) => {
+    //地形控制，未成功，暂缓
+    console.log("style.load");
+    if (e.dataType === "source") {
+    }
+    // 查找当前是否含有terrain图层
+    let terrain = map.getTerrain();
+    terrainVisible.value = !!terrain;
+
+    //以下判断style中是否含有terrain source
+    let { sources } = map.getStyle();
+    let terrainKeys = Object.keys(sources).filter((key) => {
+      let source = sources[key];
+      return source.type === "raster-dem";
+    });
   });
+
+  // map.addSourceEx("a-geojson", {
+  //   type: "geojson",
+  //   data: "/data/shaanxi.json",
+  // });
   // map.addLayer({
   //   id: "测试geojson",
-  //   type: "fill",
+  //   type: "line",
   //   source: "a-geojson",
   //   paint: {
-  //     "fill-color": "#4ED976",
-  //     "fill-opacity": 0.7,
+  //     "line-color": "#4ED976",
+  //     "line-opacity": 1,
+  //     "line-width": 5,
   //   },
   //   metadata: {
   //     options: {
@@ -130,5 +152,14 @@ const maploaded = (mapInstance: Map) => {
 }
 .logo.vue:hover {
   filter: drop-shadow(0 0 2em #42b883aa);
+}
+.terrain-control {
+  position: cursor;
+  width: 30px;
+  height: 30px;
+  background-color: gray;
+}
+.isTerrain {
+  background-color: aquamarine;
 }
 </style>

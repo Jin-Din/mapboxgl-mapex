@@ -101,6 +101,35 @@ export class Map extends mapboxgl.Map {
     return !!this.getLayer(id);
   }
   /**
+   * 判断图层是否是baselayer。
+   * metadata 无值 或者 值为true 才是
+   * @param layer
+   * @returns
+   */
+  isBaseLayer(layer: Layer): boolean {
+    let metadata = layer.metadata as ISLayerCustomMetadata;
+    return !metadata || metadata.isBaseMap === undefined || metadata.isBaseMap === true;
+  }
+  /**
+   * 判断图层是否是非baselayer。
+   * metadata 有值且 值为false 才是
+   * @param layer
+   * @returns
+   */
+  isUnBaseLayer(layer: Layer): boolean {
+    let metadata = layer.metadata as ISLayerCustomMetadata;
+    return metadata && metadata.isBaseMap != undefined && metadata.isBaseMap === false;
+  }
+  /**
+   * 获得所有非底图的图层(包含已内置的图层)。
+   * metadata 有值且 值为false 才是
+   * @returns 所有非底图的图层(包含已内置的图层)
+   */
+  public getUnBaseLayers(): AnyLayer[] {
+    let { layers } = this.getStyle();
+    return layers.filter((layer) => this.isUnBaseLayer(layer));
+  }
+  /**
    * 重写 addLayer，对新加入的图层强制加入 {metadata:{isBaseMap:boolean}} 扩展属性，默认加入 {metadata:{isBaseMap:false}}
    * @param layer
    * @param before 插入到此图层id之前。
@@ -205,7 +234,8 @@ export class Map extends mapboxgl.Map {
    * @param stay
    * @returns
    */
-  changeStyle = async (styleJson: Style | string, stay: boolean = false) => {
+  _changeStyle = async (styleJson: Style | string | undefined, stay: boolean = false) => {
+    if (!styleJson) return;
     if (!stay) {
       //移除上一个
       let currentStyle = this.getStyle();
@@ -213,20 +243,17 @@ export class Map extends mapboxgl.Map {
       // console.log(currentStyle);
       let { layers, sources: currentSources } = currentStyle;
 
+      // store images
+
       //原 sources ids
       // let curretnSourceIds = Object.keys(currentSources);
       //找到自定义的图层
-      let customLayers = layers.filter((item) => {
-        let layer = item as Layer;
-        return layer && layer.metadata && layer.metadata.isBaseMap === false;
-      });
+      let customLayers = this.getUnBaseLayers();
 
       if (typeof styleJson === "string") {
         //TODO 矢量瓦片地址 从新解析
         let styleString = styleJson as string;
-        const response = await fetch(styleString);
-        // const responseJson = await response.json();
-        let [error, result] = await awaitHelper(response.json());
+        let [error, result] = await fetchJson(styleString);
         // let [error, result] = await awaitHelper(axios.get(styleString));
         if (error) return;
         styleJson = result as Style;
@@ -238,11 +265,15 @@ export class Map extends mapboxgl.Map {
 
       // 过滤非必要的sources.从合并后的layers中反向查找对应的sources(待完善)
 
+      this.on("style.load", () => {
+        console.log("loading sprites");
+
+        // //重新加载图片资源(未实现)
+        // this.reloadImages();
+      });
+
       // console.log(styleJson);
       this.setStyle(styleJson, { diff: true });
-
-      // //重新加载图片资源
-      // this.reloadImages();
     }
   };
 
@@ -377,7 +408,8 @@ export class Map extends mapboxgl.Map {
       // console.log("待删除sourceids");
       // console.log(readyToRemovedSourceIds);
 
-      //待保留的source
+      //待保留的source 。
+      //TODO: 地形数据源保留
       let stayinSourceIds: string[] = [];
       stayinLayers.forEach((anylayer) => {
         //收集被删除layer对应的source

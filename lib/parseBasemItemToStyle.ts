@@ -58,10 +58,10 @@ export const parseRasterBasemapToStyle = (basemap: ISRasterBaseMap): Style | und
   let rasterStyle = rasterBaseMap.style;
   if (!rasterStyle) rasterBaseMap = getInnerRasterBasemapItem(rasterBaseMap.id as string);
   if (!rasterBaseMap) return rasterStyle;
-  let { style, subLayers } = rasterBaseMap;
+  let { style, subLayers = [] } = rasterBaseMap;
   //设定默认值
   subLayers = subLayers ?? ([] as ISLayer[]);
-  let { layers } = style!;
+  let { layers = [] } = style!;
   //图层合并,去重，
   style!.layers = [...layers, ...subLayers].reduce((prev, item) => {
     prev.some((v) => v.id === item.id) || prev.push(item as ISLayer);
