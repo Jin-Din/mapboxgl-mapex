@@ -118,10 +118,9 @@ function _createMap(options?: MapboxOptions): Map {
  * @returns
  */
 const normalizeMapConfig = (mapConfig: ISMapConfig): ISMapConfig => {
-  let { baseMaps, token, overLayers, templateValues } = mapConfig as ISCustomMapOptions;
+  let { baseMaps, token, overLayers, templateValues = {} } = mapConfig as ISCustomMapOptions;
 
   token = token ? { ...defaultMapConfig.token, ...token } : defaultMapConfig.token;
-  templateValues = templateValues ?? {};
   //合并 templateValues  和  token形成
   templateValues = { ...token, ...templateValues };
 
@@ -139,7 +138,7 @@ const normalizeMapConfig = (mapConfig: ISMapConfig): ISMapConfig => {
     });
   }
   if (overLayers && overLayers.layers) {
-    let { layers } = overLayers;
+    let { layers = [] } = overLayers;
     //给所有的ovelayer  加入 metadata.isBaseMap =false
     layers.forEach((layer) => {
       let { metadata } = layer;
